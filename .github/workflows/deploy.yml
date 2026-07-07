@@ -18,6 +18,8 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,11 +53,33 @@ jobs:
           cat public/config.js
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages deploy public
-            --project-name=zbmsgraph-sdk-js-sandbox
-            --branch=${{ github.ref_name }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-${GITHUB_REPOSITORY#*/}}"
+          deploy_log="$(mktemp)"
+
+          set +e
+          npx --yes wrangler@3.90.0 pages deploy public \
+            --project-name="${project_name}" \
+            --branch="${GITHUB_REF_NAME}" 2>&1 | tee "${deploy_log}"
+          deploy_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "${deploy_status}" -eq 0 ]; then
+            exit 0
+          fi
+
+          # Retry only for the specific Cloudflare Pages bootstrap case seen in CI.
+          if grep -Fq "Project not found" "${deploy_log}"; then
+            npx --yes wrangler@3.90.0 pages project create "${project_name}" --production-branch=main
+            npx --yes wrangler@3.90.0 pages deploy public \
+              --project-name="${project_name}" \
+              --branch="${GITHUB_REF_NAME}"
+            exit 0
+          fi
+
+          exit "${deploy_status}"
