@@ -53,7 +53,7 @@ async function signOut() {
 async function acquireAccessToken() {
   const account = getCurrentAccount();
   if (!account) {
-    throw new Error("Sign in first.");
+    throw new Error("No authenticated account found. Please sign in to continue.");
   }
 
   try {
@@ -63,6 +63,15 @@ async function acquireAccessToken() {
     });
     return tokenResult.accessToken;
   } catch (error) {
+    const needsInteraction =
+      error instanceof msal.InteractionRequiredAuthError ||
+      ["interaction_required", "consent_required", "login_required"].includes(
+        error?.errorCode
+      );
+    if (!needsInteraction) {
+      throw error;
+    }
+
     const tokenResult = await msalInstance.acquireTokenPopup({
       scopes: GRAPH_SCOPES,
     });
