@@ -22,7 +22,7 @@ jobs:
       CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # clientId / tenantId / redirectUri are public identifiers (they ship in
       # client-side JS), so they come from repository *Variables*, not Secrets.
