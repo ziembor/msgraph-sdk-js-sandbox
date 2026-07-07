@@ -61,23 +61,45 @@ public identifiers that ship in client-side JS, so they are Variables, not Secre
 | --- | --- |
 | `AZURE_CLIENT_ID` | Entra app (client) ID |
 | `AZURE_TENANT_ID` | Entra directory (tenant) ID |
-| `REDIRECT_URI` | Production URL, e.g. `https://msgraph-sdk-js-sandbox.pages.dev` |
+| `REDIRECT_URI` | Production URL, e.g. `https://zbmsgraph-sdk-js-sandbox.pages.dev` |
 
 **Repository Secrets** (same page → *Secrets*):
 
 | Secret | Value |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | API token with the **Cloudflare Pages: Edit** permission |
-| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+| `CLOUDFLARE_API_TOKEN` | API token with the **Cloudflare Pages: Edit** permission (see below) |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID (see below) |
+
+### Create the Cloudflare credentials
+
+**`CLOUDFLARE_API_TOKEN`** — use a scoped Custom Token, never the Global API Key:
+
+1. Cloudflare dashboard → **My Profile → API Tokens → Create Token → Create Custom Token**.
+2. **Permissions:** `Account` → `Cloudflare Pages` → `Edit`. This single permission is all
+   `pages deploy` needs — no Workers, Zone, or Account Settings scopes.
+3. **Account Resources:** Include → *your account only* (not "All accounts").
+4. Optionally set a **TTL / expiration** so the token gets rotated. Leave IP filtering off —
+   GitHub-hosted runners have dynamic IPs.
+5. Create it, copy the token value once, and paste it into the `CLOUDFLARE_API_TOKEN` secret.
+
+> Note: Cloudflare's Pages permission is account-wide — this token can deploy to *any* Pages
+> project in the account (there is no per-project scoping). For a hard blast-radius limit, use a
+> dedicated Cloudflare account for this project.
+
+**`CLOUDFLARE_ACCOUNT_ID`** — find it any of these ways, then paste into the secret:
+
+- Dashboard → **Workers & Pages** → right sidebar **Account details → Account ID** (copy button).
+- Or read the hex segment in the dashboard URL: `https://dash.cloudflare.com/<account-id>/...`.
+- Or run `npx wrangler whoami` (this also verifies the API token works before you push).
 
 **One-time setup**
 
 1. Create the Pages project (name must match the workflow's `--project-name`):
    ```bash
-   npx wrangler pages project create msgraph-sdk-js-sandbox --production-branch=main
+   npx wrangler pages project create zbmsgraph-sdk-js-sandbox --production-branch=main
    ```
    (Or create it once in the Cloudflare dashboard: Workers & Pages → Create → Pages → Direct upload.)
 2. In the Entra app registration, add the production URL (the `REDIRECT_URI` value) as a
    **Single-page application** redirect URI, alongside `http://localhost:3000`.
 
-Push to `main` and the workflow deploys to `https://<project>.pages.dev`.
+Push to `main` and the workflow deploys to `https://zbmsgraph-sdk-js-sandbox.pages.dev`.

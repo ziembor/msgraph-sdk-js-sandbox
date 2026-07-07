@@ -57,5 +57,5 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
             pages deploy public
-            --project-name=msgraph-sdk-js-sandbox
+            --project-name=zbmsgraph-sdk-js-sandbox
             --branch=${{ github.ref_name }}
