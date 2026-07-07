@@ -108,6 +108,18 @@ async function loadCalendar() {
   setOutput(JSON.stringify(result, null, 2));
 }
 
+async function loadSharedCalendar() {
+  const address = document.getElementById("sharedMailbox").value.trim();
+  if (!address) {
+    setOutput("Enter a shared mailbox address (e.g. shared.mailbox@contoso.com).");
+    return;
+  }
+  const result = await callGraph(
+    `/users/${encodeURIComponent(address)}/events?$top=10&$select=subject,start,end,organizer`
+  );
+  setOutput(JSON.stringify(result, null, 2));
+}
+
 function wireUpButtons() {
   document.getElementById("signIn").addEventListener("click", async () => {
     try {
@@ -142,6 +154,15 @@ function wireUpButtons() {
     } catch (error) {
       console.error("Loading calendar failed.", error);
       setOutput("Loading calendar failed. Check browser console for details.");
+    }
+  });
+
+  document.getElementById("openSharedCalendar").addEventListener("click", async () => {
+    try {
+      await loadSharedCalendar();
+    } catch (error) {
+      console.error("Loading shared calendar failed.", error);
+      setOutput("Loading shared calendar failed. Check browser console for details.");
     }
   });
 }
