@@ -15,8 +15,24 @@ const contentTypes = {
 };
 
 function resolvePath(urlPath) {
-  const relativePath = urlPath === "/" ? "/index.html" : urlPath;
-  const safePath = path.resolve(publicDir, `.${relativePath}`);
+  const relativePath = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(relativePath);
+  } catch (error) {
+    return null;
+  }
+  const normalizedPath = path.posix.normalize(decodedPath.replace(/\\/g, "/"));
+  if (normalizedPath.includes("\0")) {
+    return null;
+  }
+
+  const segments = normalizedPath.split("/");
+  if (segments.some((segment) => segment === "..")) {
+    return null;
+  }
+
+  const safePath = path.join(publicDir, normalizedPath);
   if (safePath === publicDir || safePath.startsWith(`${publicDir}${path.sep}`)) {
     return safePath;
   }
