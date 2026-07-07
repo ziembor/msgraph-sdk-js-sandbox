@@ -1,0 +1,9 @@
+{
+  "name": "msgraph-sdk-js-sandbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal JavaScript SPA for Entra ID sign-in and EXO Graph access",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

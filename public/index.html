@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EXO SPA Sandbox</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 960px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      button {
+        margin-right: 0.5rem;
+      }
+      pre {
+        white-space: pre-wrap;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Microsoft Graph EXO SPA</h1>
+    <p id="status">Signed out</p>
+
+    <div>
+      <button id="signIn">Sign in</button>
+      <button id="signOut">Sign out</button>
+      <button id="loadMail">Load Mail</button>
+      <button id="loadCalendar">Load Calendar</button>
+    </div>
+
+    <h2>Output</h2>
+    <pre id="output"></pre>
+
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
