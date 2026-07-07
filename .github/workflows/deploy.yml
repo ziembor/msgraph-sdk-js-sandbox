@@ -19,7 +19,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME || github.event.repository.name }}
+      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,22 +52,32 @@ jobs:
           echo "Generated public/config.js:"
           cat public/config.js
 
-      - name: Ensure Cloudflare Pages project exists
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages project create ${{ env.CLOUDFLARE_PAGES_PROJECT_NAME }}
-            --production-branch=main
-
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages deploy public
-            --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT_NAME }}
-            --branch=${{ github.ref_name }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-${GITHUB_REPOSITORY#*/}}"
+          deploy_log="$(mktemp)"
+
+          set +e
+          npx --yes wrangler@3.90.0 pages deploy public \
+            --project-name="${project_name}" \
+            --branch="${GITHUB_REF_NAME}" 2>&1 | tee "${deploy_log}"
+          deploy_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "${deploy_status}" -eq 0 ]; then
+            exit 0
+          fi
+
+          if grep -Fq "Project not found" "${deploy_log}"; then
+            npx --yes wrangler@3.90.0 pages project create "${project_name}" --production-branch=main
+            npx --yes wrangler@3.90.0 pages deploy public \
+              --project-name="${project_name}" \
+              --branch="${GITHUB_REF_NAME}"
+            exit 0
+          fi
+
+          exit "${deploy_status}"
