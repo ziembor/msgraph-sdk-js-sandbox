@@ -1,0 +1,7 @@
+# Local, developer-specific app configuration (keeps real client/tenant IDs out of git).
+# Copy public/config.example.js to public/config.js and fill in your own values.
+/public/config.js
+/public/_zb_config.js
+
+# Node
+node_modules/

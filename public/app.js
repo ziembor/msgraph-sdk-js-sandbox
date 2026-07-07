@@ -1,4 +1,4 @@
-const GRAPH_SCOPES = ["Mail.Read", "Calendars.Read", "Calendar.Read.Shared"];
+const GRAPH_SCOPES = ["Mail.Read", "Calendars.Read", "Calendars.Read.Shared"];
 const statusEl = document.getElementById("status");
 const outputEl = document.getElementById("output");
 

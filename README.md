@@ -4,13 +4,14 @@ Minimal JavaScript single-page app (SPA) for Azure Web App hosting that signs in
 
 - `Mail.Read`
 - `Calendars.Read`
-- `Calendar.Read.Shared`
+- `Calendars.Read.Shared`
 
 ## Project structure
 
 - `/public/index.html` - SPA UI
 - `/public/app.js` - MSAL + Graph logic
-- `/public/config.js` - local app configuration (client/tenant/redirect)
+- `/public/config.example.js` - template app configuration (committed)
+- `/public/config.js` - your local app configuration (client/tenant/redirect); git-ignored
 - `/server.js` - lightweight static file server for App Service
 
 ## Configure Entra ID app
@@ -20,12 +21,14 @@ Minimal JavaScript single-page app (SPA) for Azure Web App hosting that signs in
 3. Add delegated Graph permissions:
    - `Mail.Read`
    - `Calendars.Read`
-   - `Calendar.Read.Shared`
+   - `Calendars.Read.Shared`
 4. Grant admin consent if your tenant requires it.
-5. Update `/public/config.js`:
+5. Copy `/public/config.example.js` to `/public/config.js` and set your values:
    - `clientId`
    - `tenantId`
    - `redirectUri`
+
+   `config.js` is git-ignored so your real client/tenant IDs stay local.
 
 ## Run locally
 
