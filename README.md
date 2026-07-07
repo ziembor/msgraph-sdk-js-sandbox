@@ -62,6 +62,7 @@ public identifiers that ship in client-side JS, so they are Variables, not Secre
 | `AZURE_CLIENT_ID` | Entra app (client) ID |
 | `AZURE_TENANT_ID` | Entra directory (tenant) ID |
 | `REDIRECT_URI` | Production URL, e.g. `https://msgraph-sdk-js-sandbox.pages.dev` |
+| `CLOUDFLARE_PAGES_PROJECT_NAME` *(optional)* | Pages project name if it differs from the repository name |
 
 **Repository Secrets** (same page → *Secrets*):
 
@@ -70,14 +71,12 @@ public identifiers that ship in client-side JS, so they are Variables, not Secre
 | `CLOUDFLARE_API_TOKEN` | API token with the **Cloudflare Pages: Edit** permission |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
 
+The workflow now creates the Pages project automatically if it does not already exist, using the
+repository name by default (or `CLOUDFLARE_PAGES_PROJECT_NAME` when set).
+
 **One-time setup**
 
-1. Create the Pages project (name must match the workflow's `--project-name`):
-   ```bash
-   npx wrangler pages project create msgraph-sdk-js-sandbox --production-branch=main
-   ```
-   (Or create it once in the Cloudflare dashboard: Workers & Pages → Create → Pages → Direct upload.)
-2. In the Entra app registration, add the production URL (the `REDIRECT_URI` value) as a
+1. In the Entra app registration, add the production URL (the `REDIRECT_URI` value) as a
    **Single-page application** redirect URI, alongside `http://localhost:3000`.
 
 Push to `main` and the workflow deploys to `https://<project>.pages.dev`.

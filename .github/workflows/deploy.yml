@@ -18,6 +18,8 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME || github.event.repository.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +52,16 @@ jobs:
           echo "Generated public/config.js:"
           cat public/config.js
 
+      - name: Ensure Cloudflare Pages project exists
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages project create ${{ env.CLOUDFLARE_PAGES_PROJECT_NAME }}
+            --production-branch=main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
@@ -57,5 +69,5 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
             pages deploy public
-            --project-name=msgraph-sdk-js-sandbox
+            --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT_NAME }}
             --branch=${{ github.ref_name }}
