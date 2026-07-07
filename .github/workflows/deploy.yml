@@ -56,6 +56,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
         run: |
           set -euo pipefail
           project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-${GITHUB_REPOSITORY#*/}}"
@@ -72,6 +73,7 @@ jobs:
             exit 0
           fi
 
+          # Retry only for the specific Cloudflare Pages bootstrap case seen in CI.
           if grep -Fq "Project not found" "${deploy_log}"; then
             npx --yes wrangler@3.90.0 pages project create "${project_name}" --production-branch=main
             npx --yes wrangler@3.90.0 pages deploy public \
