@@ -13,6 +13,7 @@ Minimal JavaScript single-page app (SPA) for Azure Web App hosting that signs in
 - `/public/config.example.js` - template app configuration (committed)
 - `/public/config.js` - your local app configuration (client/tenant/redirect); git-ignored
 - `/server.js` - lightweight static file server for App Service
+- `/.github/workflows/deploy.yml` - CI: build config.js + deploy to Cloudflare Pages
 
 ## Configure Entra ID app
 
@@ -45,3 +46,38 @@ Deploy this repository to an Azure Web App (Node runtime). App Service uses `ser
 ```bash
 node server.js
 ```
+
+## Deploy to Cloudflare Pages (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs on every push to `main` (and via manual dispatch). It
+generates `public/config.js` from repository Variables and deploys the static `public/` folder to
+Cloudflare Pages. Because `config.js` is git-ignored, the workflow rebuilds it each run — nothing
+sensitive lives in the repo.
+
+**Repository Variables** (Settings → Secrets and variables → Actions → *Variables*) — these are
+public identifiers that ship in client-side JS, so they are Variables, not Secrets:
+
+| Variable | Value |
+| --- | --- |
+| `AZURE_CLIENT_ID` | Entra app (client) ID |
+| `AZURE_TENANT_ID` | Entra directory (tenant) ID |
+| `REDIRECT_URI` | Production URL, e.g. `https://msgraph-sdk-js-sandbox.pages.dev` |
+
+**Repository Secrets** (same page → *Secrets*):
+
+| Secret | Value |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | API token with the **Cloudflare Pages: Edit** permission |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+
+**One-time setup**
+
+1. Create the Pages project (name must match the workflow's `--project-name`):
+   ```bash
+   npx wrangler pages project create msgraph-sdk-js-sandbox --production-branch=main
+   ```
+   (Or create it once in the Cloudflare dashboard: Workers & Pages → Create → Pages → Direct upload.)
+2. In the Entra app registration, add the production URL (the `REDIRECT_URI` value) as a
+   **Single-page application** redirect URI, alongside `http://localhost:3000`.
+
+Push to `main` and the workflow deploys to `https://<project>.pages.dev`.
