@@ -14,29 +14,46 @@ const contentTypes = {
   ".ico": "image/x-icon",
 };
 
-function resolvePath(urlPath) {
-  const relativePath = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
+function indexPublicFiles(dir, relativeDir = "", fileMap = {}) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const absolutePath = path.join(dir, entry.name);
+    const relativePath = path.posix.join(relativeDir, entry.name);
+    if (entry.isDirectory()) {
+      indexPublicFiles(absolutePath, relativePath, fileMap);
+    } else {
+      fileMap[`/${relativePath}`] = absolutePath;
+    }
+  }
+  return fileMap;
+}
+
+const publicFiles = indexPublicFiles(publicDir);
+publicFiles["/"] = indexPath;
+
+function normalizeRequestPath(rawUrl) {
+  const pathOnly = (rawUrl || "/").split("?")[0];
   let decodedPath;
   try {
-    decodedPath = decodeURIComponent(relativePath);
+    decodedPath = decodeURIComponent(pathOnly);
   } catch (error) {
     return null;
   }
+
   const normalizedPath = path.posix.normalize(decodedPath.replace(/\\/g, "/"));
   if (normalizedPath.includes("\0")) {
     return null;
   }
 
-  const segments = normalizedPath.split("/");
-  if (segments.some((segment) => segment === "..")) {
+  let absolutePath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+  if (absolutePath === "/.") {
+    absolutePath = "/";
+  }
+  if (absolutePath.split("/").includes("..")) {
     return null;
   }
 
-  const safePath = path.join(publicDir, normalizedPath);
-  if (safePath === publicDir || safePath.startsWith(`${publicDir}${path.sep}`)) {
-    return safePath;
-  }
-  return null;
+  return absolutePath;
 }
 
 function sendResponse(res, statusCode, contentType, content) {
@@ -44,18 +61,9 @@ function sendResponse(res, statusCode, contentType, content) {
   res.end(content);
 }
 
-function readAndSendFile(res, filePath, reqPath) {
+function readAndSendFile(res, filePath) {
   fs.readFile(filePath, (error, content) => {
     if (error) {
-      if (error.code === "ENOENT") {
-        const isAssetRequest = path.extname(reqPath) !== "";
-        if (!isAssetRequest && filePath !== indexPath) {
-          readAndSendFile(res, indexPath, "/index.html");
-          return;
-        }
-        sendResponse(res, 404, "text/plain; charset=UTF-8", "Not Found");
-        return;
-      }
       sendResponse(res, 500, "text/plain; charset=UTF-8", "Internal Server Error");
       return;
     }
@@ -68,13 +76,20 @@ function readAndSendFile(res, filePath, reqPath) {
 
 http
   .createServer((req, res) => {
-    const reqPath = (req.url || "/").split("?")[0];
-    const filePath = resolvePath(reqPath);
-    if (!filePath) {
+    const reqPath = normalizeRequestPath(req.url);
+    if (!reqPath) {
       sendResponse(res, 403, "text/plain; charset=UTF-8", "Forbidden");
       return;
     }
-    readAndSendFile(res, filePath, reqPath);
+
+    const filePath =
+      publicFiles[reqPath] || (path.extname(reqPath) === "" ? indexPath : null);
+    if (!filePath) {
+      sendResponse(res, 404, "text/plain; charset=UTF-8", "Not Found");
+      return;
+    }
+
+    readAndSendFile(res, filePath);
   })
   .listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);

@@ -81,10 +81,9 @@ async function acquireAccessToken() {
 
 async function callGraph(path) {
   const token = await acquireAccessToken();
-  const authScheme = "Bearer";
   const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
     headers: {
-      Authorization: `${authScheme} ${token}`,
+      Authorization: ["Bearer", token].join(" "),
     },
   });
 
