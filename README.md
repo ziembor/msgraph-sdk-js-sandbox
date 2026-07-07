@@ -72,25 +72,51 @@ public identifiers that ship in client-side JS, so they are Variables, not Secre
 
 ### Create the Cloudflare credentials
 
-**`CLOUDFLARE_API_TOKEN`** — use a scoped Custom Token, never the Global API Key:
+You need two values for the repository **Secrets**: a scoped API token and your account ID.
 
-1. Cloudflare dashboard → **My Profile → API Tokens → Create Token → Create Custom Token**.
-2. **Permissions:** `Account` → `Cloudflare Pages` → `Edit`. This single permission is all
-   `pages deploy` needs — no Workers, Zone, or Account Settings scopes.
-3. **Account Resources:** Include → *your account only* (not "All accounts").
-4. Optionally set a **TTL / expiration** so the token gets rotated. Leave IP filtering off —
-   GitHub-hosted runners have dynamic IPs.
-5. Create it, copy the token value once, and paste it into the `CLOUDFLARE_API_TOKEN` secret.
+#### `CLOUDFLARE_API_TOKEN`
+
+Use a scoped **Custom Token**, never the Global API Key — the Global Key has full account access
+and can't be narrowed.
+
+1. Open [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
+   (or dashboard → top-right avatar → **My Profile → API Tokens**).
+2. Click **Create Token**, then next to **Create Custom Token** click **Get started**.
+3. **Token name:** something you'll recognise later, e.g. `pages-deploy-msgraph-sandbox`.
+4. **Permissions:** add exactly one row — `Account` → `Cloudflare Pages` → `Edit`. This is all
+   `wrangler pages deploy` needs; do **not** add Workers, Zone, or Account Settings scopes.
+5. **Account Resources:** `Include` → *your account only* (not "All accounts").
+6. **Client IP Address Filtering:** leave empty — GitHub-hosted runners have dynamic IPs.
+7. **TTL:** optionally set a start/expiry date so the token is rotated on a schedule.
+8. Click **Continue to summary → Create Token**. Copy the token value **now** — Cloudflare shows
+   it only once.
+9. In GitHub: repo → **Settings → Secrets and variables → Actions → Secrets → New repository
+   secret**, name it `CLOUDFLARE_API_TOKEN`, and paste the value.
+
+Verify the token works before you rely on it (a healthy token returns `"status": "active"`):
+
+```bash
+curl -s https://api.cloudflare.com/client/v4/user/tokens/verify \
+  -H "Authorization: Bearer <your-token>"
+```
 
 > Note: Cloudflare's Pages permission is account-wide — this token can deploy to *any* Pages
 > project in the account (there is no per-project scoping). For a hard blast-radius limit, use a
 > dedicated Cloudflare account for this project.
 
-**`CLOUDFLARE_ACCOUNT_ID`** — find it any of these ways, then paste into the secret:
+#### `CLOUDFLARE_ACCOUNT_ID`
 
-- Dashboard → **Workers & Pages** → right sidebar **Account details → Account ID** (copy button).
-- Or read the hex segment in the dashboard URL: `https://dash.cloudflare.com/<account-id>/...`.
-- Or run `npx wrangler whoami` (this also verifies the API token works before you push).
+This is a public identifier for your account. Find it any of these ways, then add it as the
+`CLOUDFLARE_ACCOUNT_ID` repository secret (same GitHub page as above):
+
+- Dashboard → **Workers & Pages** → right sidebar **Account details → Account ID** → copy button.
+- Read the hex segment in any dashboard URL: `https://dash.cloudflare.com/<account-id>/...`.
+- Run `npx wrangler whoami` — it prints the account name and ID, and confirms the API token works.
+  On Windows PowerShell, supply the token first:
+
+  ```powershell
+  $env:CLOUDFLARE_API_TOKEN = "<your-token>"; npx wrangler whoami
+  ```
 
 **One-time setup**
 
