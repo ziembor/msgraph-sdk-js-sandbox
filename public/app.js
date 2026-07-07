@@ -81,10 +81,9 @@ async function acquireAccessToken() {
 
 async function callGraph(path) {
   const token = await acquireAccessToken();
-  const scheme = `Bea${"rer"}`;
   const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
     headers: {
-      Authorization: `${scheme} ${token}`,
+      Authorization: "Bearer ".concat(token),
     },
   });
 
@@ -114,7 +113,8 @@ function wireUpButtons() {
     try {
       await signIn();
     } catch (error) {
-      setOutput(error.message);
+      console.error("Sign-in failed.", error);
+      setOutput("Sign-in failed. Check browser console for details.");
     }
   });
 
@@ -122,7 +122,8 @@ function wireUpButtons() {
     try {
       await signOut();
     } catch (error) {
-      setOutput(error.message);
+      console.error("Sign-out failed.", error);
+      setOutput("Sign-out failed. Check browser console for details.");
     }
   });
 
@@ -130,7 +131,8 @@ function wireUpButtons() {
     try {
       await loadMail();
     } catch (error) {
-      setOutput(error.message);
+      console.error("Loading mail failed.", error);
+      setOutput("Loading mail failed. Check browser console for details.");
     }
   });
 
@@ -138,11 +140,15 @@ function wireUpButtons() {
     try {
       await loadCalendar();
     } catch (error) {
-      setOutput(error.message);
+      console.error("Loading calendar failed.", error);
+      setOutput("Loading calendar failed. Check browser console for details.");
     }
   });
 }
 
 initialize()
   .then(() => wireUpButtons())
-  .catch((error) => setOutput(error.message));
+  .catch((error) => {
+    console.error("App initialization failed.", error);
+    setOutput("App initialization failed. Check browser console for details.");
+  });

@@ -88,6 +88,10 @@ http
       sendResponse(res, 404, "text/plain; charset=UTF-8", "Not Found");
       return;
     }
+    if (filePath !== indexPath && !filePath.startsWith(`${publicDir}${path.sep}`)) {
+      sendResponse(res, 403, "text/plain; charset=UTF-8", "Forbidden");
+      return;
+    }
 
     readAndSendFile(res, filePath);
   })
