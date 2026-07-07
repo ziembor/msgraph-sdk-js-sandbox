@@ -1,0 +1,61 @@
+name: Deploy to Cloudflare Pages
+
+# Builds public/config.js from GitHub Variables/Secrets (config.js is git-ignored,
+# so it never exists in the repo) and deploys the static public/ folder to Cloudflare Pages.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # clientId / tenantId / redirectUri are public identifiers (they ship in
+      # client-side JS), so they come from repository *Variables*, not Secrets.
+      - name: Generate public/config.js
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          REDIRECT_URI: ${{ vars.REDIRECT_URI }}
+        run: |
+          set -euo pipefail
+          : "${AZURE_CLIENT_ID:?Set repository Variable AZURE_CLIENT_ID}"
+          : "${AZURE_TENANT_ID:?Set repository Variable AZURE_TENANT_ID}"
+          : "${REDIRECT_URI:?Set repository Variable REDIRECT_URI}"
+          # Use Node's JSON.stringify so values are always safely escaped.
+          node -e '
+            const fs = require("fs");
+            const cfg = {
+              clientId: process.env.AZURE_CLIENT_ID,
+              tenantId: process.env.AZURE_TENANT_ID,
+              redirectUri: process.env.REDIRECT_URI,
+            };
+            fs.writeFileSync(
+              "public/config.js",
+              "window.__APP_CONFIG__ = " + JSON.stringify(cfg, null, 2) + ";\n"
+            );
+          '
+          echo "Generated public/config.js:"
+          cat public/config.js
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy public
+            --project-name=msgraph-sdk-js-sandbox
+            --branch=${{ github.ref_name }}
