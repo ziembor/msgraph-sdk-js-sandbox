@@ -21,6 +21,9 @@
         padding: 1rem;
         border-radius: 6px;
       }
+      #debugPanel details {
+        margin-bottom: 0.5rem;
+      }
     </style>
   </head>
   <body>
@@ -38,6 +41,30 @@
 
     <h2>Output</h2>
     <pre id="output"></pre>
+
+    <h2>Debug Panel</h2>
+    <div id="debugPanel">
+      <details open>
+        <summary>App Config</summary>
+        <pre id="debugConfig"></pre>
+      </details>
+      <details open>
+        <summary>Account / Session</summary>
+        <pre id="debugAccount"></pre>
+      </details>
+      <details open>
+        <summary>Last Token Acquisition</summary>
+        <pre id="debugToken"></pre>
+      </details>
+      <details open>
+        <summary>Last Graph Request</summary>
+        <pre id="debugGraph"></pre>
+      </details>
+      <details open>
+        <summary>Last Error</summary>
+        <pre id="debugError"></pre>
+      </details>
+    </div>
 
     <script src="https://unpkg.com/@azure/msal-browser@2.39.0/lib/msal-browser.min.js"></script>
     <script src="./config.js"></script>
