@@ -59,7 +59,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-${GITHUB_REPOSITORY#*/}}"
+          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-zbmsgraph-sdk-js-sandbox}"
           deploy_log="$(mktemp)"
 
           set +e
