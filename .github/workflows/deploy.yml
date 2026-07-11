@@ -59,11 +59,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-${GITHUB_REPOSITORY#*/}}"
+          project_name="${CLOUDFLARE_PAGES_PROJECT_NAME:-zbmsgraph-sdk-js-sandbox}"
           deploy_log="$(mktemp)"
 
           set +e
-          npx --yes wrangler@3.90.0 pages deploy public \
+          npx --yes wrangler@4.110.0 pages deploy public \
             --project-name="${project_name}" \
             --branch="${GITHUB_REF_NAME}" 2>&1 | tee "${deploy_log}"
           deploy_status=${PIPESTATUS[0]}
@@ -75,8 +75,8 @@ jobs:
 
           # Retry only for the specific Cloudflare Pages bootstrap case seen in CI.
           if grep -Fq "Project not found" "${deploy_log}"; then
-            npx --yes wrangler@3.90.0 pages project create "${project_name}" --production-branch=main
-            npx --yes wrangler@3.90.0 pages deploy public \
+            npx --yes wrangler@4.110.0 pages project create "${project_name}" --production-branch=main
+            npx --yes wrangler@4.110.0 pages deploy public \
               --project-name="${project_name}" \
               --branch="${GITHUB_REF_NAME}"
             exit 0

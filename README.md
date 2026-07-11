@@ -62,7 +62,7 @@ public identifiers that ship in client-side JS, so they are Variables, not Secre
 | `AZURE_CLIENT_ID` | Entra app (client) ID |
 | `AZURE_TENANT_ID` | Entra directory (tenant) ID |
 | `REDIRECT_URI` | Production URL, e.g. `https://msgraph-sdk-js-sandbox.pages.dev` |
-| `CLOUDFLARE_PAGES_PROJECT_NAME` *(optional)* | Pages project name if it differs from the repository name |
+| `CLOUDFLARE_PAGES_PROJECT_NAME` *(optional)* | Pages project name if it differs from `zbmsgraph-sdk-js-sandbox` |
 
 **Repository Secrets** (same page → *Secrets*):
 
@@ -119,8 +119,8 @@ This is a public identifier for your account. Find it any of these ways, then ad
   $env:CLOUDFLARE_API_TOKEN = "<your-token>"; npx wrangler whoami
   ```
 
-The workflow now creates the Pages project automatically if it does not already exist, using the
-repository name by default (or `CLOUDFLARE_PAGES_PROJECT_NAME` when set).
+The workflow now creates the Pages project automatically if it does not already exist, using
+`zbmsgraph-sdk-js-sandbox` by default (or `CLOUDFLARE_PAGES_PROJECT_NAME` when set).
 
 **One-time setup**
 
