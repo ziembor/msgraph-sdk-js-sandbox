@@ -1,4 +1,4 @@
-# msgraph-sdk-js-sandbox
+# msgraph-js-sandbox
 
 Minimal JavaScript single-page app (SPA) for Azure Web App hosting that signs in with an Entra ID app and calls Microsoft Graph for Exchange Online data using delegated scopes:
 
